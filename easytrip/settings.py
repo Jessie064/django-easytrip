@@ -83,9 +83,12 @@ DATABASES = {
     }
 }
 
-# Override with Postgres if DATABASE_URL is set in environment (e.g. on Vercel)
-if 'DATABASE_URL' in os.environ:
-    DATABASES['default'] = dj_database_url.parse(os.environ.get('DATABASE_URL'))
+# Override with Postgres if running on Vercel or if DATABASE_URL is manually provided
+if os.environ.get('VERCEL') == '1' or 'DATABASE_URL' in os.environ:
+    db_url = os.environ.get('DATABASE_URL')
+    if not db_url:
+        raise ValueError("CRITICAL ERROR: DATABASE_URL environment variable is missing in Vercel! Please add it in project settings and redeploy without build cache.")
+    DATABASES['default'] = dj_database_url.parse(db_url)
 
 
 # Password validation
