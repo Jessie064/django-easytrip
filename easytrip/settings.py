@@ -76,19 +76,15 @@ WSGI_APPLICATION = 'easytrip.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
-}
+# Enforce PostgreSQL on Vercel
+db_url = os.environ.get('DATABASE_URL')
+if not db_url:
+    # If standard DATABASE_URL is missing, check if it's there but under a different name, or just hard crash.
+    raise ValueError("CRITICAL ERROR: DATABASE_URL environment variable is still missing or not exposed to this Vercel deployment.")
 
-# Override with Postgres if running on Vercel or if DATABASE_URL is manually provided
-if os.environ.get('VERCEL') == '1' or 'DATABASE_URL' in os.environ:
-    db_url = os.environ.get('DATABASE_URL')
-    if not db_url:
-        raise ValueError("CRITICAL ERROR: DATABASE_URL environment variable is missing in Vercel! Please add it in project settings and redeploy without build cache.")
-    DATABASES['default'] = dj_database_url.parse(db_url)
+DATABASES = {
+    'default': dj_database_url.parse(db_url)
+}
 
 
 # Password validation
